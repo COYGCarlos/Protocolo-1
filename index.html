@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Protocolo Institucional</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración de color y fuente (Inter) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#003366', // Azul institucional
+                        'secondary': '#FFCC00', // Dorado/amarillo de contraste
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f4f7f9;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para las opciones de radio */
+        input[type="radio"]:checked + label {
+            background-color: #e0f2fe; /* light blue */
+            border-color: #007bff;
+            font-weight: 600;
+        }
+        .mode-button-active {
+            box-shadow: 0 4px 6px -1px rgba(0, 51, 102, 0.5), 0 2px 4px -1px rgba(0, 51, 102, 0.25);
+            transform: translateY(-2px);
+            border-color: #003366;
+            background-color: #ffffff;
+            color: #003366;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <!-- Contenedor Principal -->
+    <div id="app" class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-6 sm:p-10">
+
+        <!-- Encabezado y Selector de Modo -->
+        <header class="text-center mb-10 border-b pb-6 border-primary/20">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-primary mb-2">
+                Test: Protocolo Institucional
+            </h1>
+            <p class="text-lg text-gray-600">20 preguntas aleatorias basadas en el documento "U1: Protocolo Institucional" (Banco de 130 preguntas).</p>
+            
+            <!-- Selector de Modo -->
+            <div class="mt-6 flex justify-center space-x-4">
+                <button onclick="setMode('Estudiar')" id="btn-estudiar"
+                        class="px-6 py-3 rounded-full border-2 border-gray-300 text-gray-700 transition duration-300 hover:bg-gray-100 flex items-center mode-button-active">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.467 9.577 5 8.25 5c-4.286 0-7.75 3.134-7.75 7s3.464 7 7.75 7c1.327 0 2.582-.467 3.75-1.253m0-13C13.168 5.467 14.423 5 15.75 5c4.286 0 7.75 3.134 7.75 7s-3.464 7-7.75 7c-1.327 0-2.582-.467-3.75-1.253"></path></svg>
+                    Modo Estudiar
+                </button>
+                <button onclick="setMode('Practicar')" id="btn-practicar"
+                        class="px-6 py-3 rounded-full border-2 border-gray-300 text-gray-700 transition duration-300 hover:bg-gray-100 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0V3m0 2h.01M9 12H7m5 0h2m-4 4h2"></path></svg>
+                    Modo Practicar
+                </button>
+            </div>
+            <div class="mt-4 text-sm text-gray-500">
+                Modo actual: <span id="current-mode" class="font-bold text-primary">Estudiar</span>
+            </div>
+        </header>
+
+        <!-- Sección de Preguntas -->
+        <div id="quiz-container">
+            <!-- Las preguntas se inyectarán aquí -->
+        </div>
+
+        <!-- Botón de Enviar/Corregir (Oculto en modo Estudiar) -->
+        <div class="text-center mt-10">
+            <button id="submit-button" onclick="submitQuiz()"
+                    class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 disabled:opacity-50"
+                    disabled>
+                Enviar y Corregir Test
+            </button>
+        </div>
+
+        <!-- Sección de Resultados (Oculta inicialmente) -->
+        <div id="results-container" class="mt-12 p-6 bg-secondary/20 rounded-xl shadow-inner hidden">
+            <h2 class="text-3xl font-extrabold text-primary text-center mb-6">Resultados</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-6">
+                <div class="p-4 bg-white rounded-lg shadow-md">
+                    <p class="text-sm font-semibold text-gray-500">Aciertos</p>
+                    <p id="correct-count" class="text-3xl font-bold text-green-600">0</p>
+                </div>
+                <div class="p-4 bg-white rounded-lg shadow-md">
+                    <p class="text-sm font-semibold text-gray-500">Errores</p>
+                    <p id="incorrect-count" class="text-3xl font-bold text-red-600">0</p>
+                </div>
+                <div class="p-4 bg-white rounded-lg shadow-md border-2 border-primary">
+                    <p class="text-sm font-semibold text-primary">Nota (sobre 10)</p>
+                    <p id="final-score" class="text-4xl font-extrabold text-primary">0.00</p>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-primary border-t pt-4 mt-4">Resumen y Explicaciones de Errores:</h3>
+            <div id="explanations-list" class="mt-4 space-y-4">
+                <!-- Explicaciones inyectadas aquí -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Datos y Lógica
+        let currentMode = 'Estudiar'; // Modo inicial
+        let selectedQuestions = [];
+        let userAnswers = {}; // { questionId: selectedOptionText }
+        const NUM_QUESTIONS = 20;
+
+        // Fórmulas de Puntuación
+        const MAX_SCORE = 10;
+        const VALUE_CORRECT = MAX_SCORE / NUM_QUESTIONS; // 0.5 puntos
+        // Un error resta 1/3 de un acierto: -(1/3) * 0.5 ≈ -0.1667
+        const VALUE_INCORRECT = -(1/3) * VALUE_CORRECT;
+
+        // BANDA DE PREGUNTAS AMPLIADA (Mínimo 126 preguntas)
+        const fullQuestionBank = [
+            // 1. Fundamentos y Ámbitos del Protocolo (1-10)
+            { id: 1, question: "¿Cuál es el objetivo principal del protocolo oficial según el resumen del texto?", options: ["Garantizar la estética del evento.", "Establecer criterios de ordenación de personas e instituciones.", "Simplificar la comunicación institucional.", "Determinar únicamente el orden de las banderas."], answer: "Establecer criterios de ordenación de personas e instituciones.", explanation: "El protocolo oficial persigue establecer criterios de ordenación de las personas e instituciones, siendo un requisito de reconocimiento de su significación y disposición." },
+            { id: 2, question: "El ámbito del protocolo que se aplica a los actos de la Administración Pública se denomina:", options: ["Protocolo de empresa.", "Protocolo social.", "Protocolo institucional.", "Protocolo deportivo."], answer: "Protocolo institucional.", explanation: "El Protocolo Institucional se refiere a las normas que rigen los actos de las instituciones públicas y los organismos oficiales." },
+            { id: 3, question: "La 'Presidencia' de los actos se refiere a:", options: ["El lugar donde se realizan los discursos.", "El tratamiento protocolario de las autoridades.", "El criterio de jerarquía para el ordenamiento de personas y símbolos.", "La persona o personas que ocupan el lugar de honor y dirigen el acto."], answer: "La persona o personas que ocupan el lugar de honor y dirigen el acto.", explanation: "La presidencia se refiere a las personas que ocupan el lugar preeminente o de honor en el acto." },
+            { id: 4, question: "¿Qué principio fundamental rige la ordenación de las personas en los actos oficiales?", options: ["El principio de antigüedad.", "El principio de popularidad.", "El principio de precedencia.", "El principio de afinidad."], answer: "El principio de precedencia.", explanation: "Las precedencias son las normas que establecen el orden jerárquico y de colocación de personas, entidades y símbolos en los actos protocolarios." },
+            { id: 5, question: "La 'Vexilología' es la disciplina que estudia:", options: ["Los tratamientos honoríficos.", "El ordenamiento de las banderas y símbolos.", "La disposición espacial en las mesas.", "El protocolo internacional."], answer: "El ordenamiento de las banderas y símbolos.", explanation: "La Vexilología se encarga del estudio y ordenación de las banderas, estandartes y otros símbolos nacionales e institucionales." },
+            { id: 6, question: "El protocolo es una herramienta de comunicación y un instrumento de...:", options: ["Marketing.", "Comunicación no verbal e institucional.", "Contabilidad.", "Gestión de recursos humanos."], answer: "Comunicación no verbal e institucional.", explanation: "El protocolo es una técnica, hábito o costumbre aceptada socialmente para comunicar un mensaje específico de orden o cortesía." },
+            { id: 7, question: "¿Cuál de las siguientes disciplinas NO se menciona como parte del contenido del módulo?", options: ["Protocolo empresarial.", "Gestión de quejas.", "Protocolo militar.", "Relaciones públicas."], answer: "Protocolo militar.", explanation: "El índice menciona Protocolo institucional, empresarial, Relaciones Públicas, comunicación con clientes y gestión de quejas, pero no Protocolo militar." },
+            { id: 8, question: "La disposición temporal, espacial y personal es un requisito de reconocimiento de la 'significación' de las instituciones, ¿a qué se refiere la disposición espacial?", options: ["El momento exacto del acto.", "La ubicación física de personas y símbolos.", "El trato verbal de las autoridades.", "La vestimenta requerida."], answer: "La ubicación física de personas y símbolos.", explanation: "La disposición espacial se refiere a dónde se sitúan las personas y los símbolos (mesas, estrados, etc.)." },
+            { id: 9, question: "¿Qué busca el protocolo al 'establecer criterios de ordenación'?", options: ["Crear confusión.", "Evitar conflictos de ego.", "Garantizar la jerarquía y el respeto institucional.", "Limitar la participación de invitados."], answer: "Garantizar la jerarquía y el respeto institucional.", explanation: "La ordenación busca reflejar la jerarquía y el respeto debido a cada institución o persona." },
+            { id: 10, question: "Los actos oficiales son aquellos convocados por:", options: ["Cualquier empresa privada.", "Una ONG internacional.", "Una institución pública o administración.", "Un particular de alto standing."], answer: "Una institución pública o administración.", explanation: "Un acto oficial es organizado, convocado o presidido por las Administraciones Públicas, o en su caso por la Casa Real." },
+            
+            // 2. Tipos de Actos y Presidencia (11-20)
+            { id: 11, question: "¿Cuál de las siguientes opciones es un tipo de acto oficial según el texto?", options: ["Actos recreativos.", "Actos de gala.", "Actos de inauguración y conmemoraciones.", "Actos comerciales."], answer: "Actos de inauguración y conmemoraciones.", explanation: "Los actos oficiales se clasifican según su naturaleza: inauguraciones, conmemoraciones, recepciones, etc." },
+            { id: 12, question: "Si la máxima autoridad cede su puesto de honor a un invitado de igual o superior rango, se denomina:", options: ["Presidencia de hecho.", "Presidencia por delegación.", "Presidencia por cesión.", "Presidencia dual."], answer: "Presidencia por cesión.", explanation: "La cesión implica que el anfitrión cede formalmente el puesto de máximo honor." },
+            { id: 13, question: "Si una autoridad ostenta la presidencia por ser la anfitriona del lugar, sin ser la autoridad de mayor precedencia entre los asistentes, hablamos de:", options: ["Presidencia por cortesía.", "Presidencia de hecho.", "Presidencia legal.", "Presidencia única."], answer: "Presidencia de hecho.", explanation: "La presidencia de hecho es ejercida por quien organiza o pone la sede, aun cuando no sea la autoridad de mayor rango." },
+            { id: 14, question: "¿Qué tipo de presidencia se establece cuando una ley o reglamento fija taxativamente quién debe presidir?", options: ["Presidencia por acuerdo.", "Presidencia legal o de derecho.", "Presidencia accidental.", "Presidencia única."], answer: "Presidencia legal o de derecho.", explanation: "La presidencia legal es aquella que viene determinada por una norma escrita (Ley o Real Decreto)." },
+            { id: 15, question: "En una presidencia única (una sola persona), ¿dónde se ubica esta persona en un estrado o tarima?", options: ["En el extremo izquierdo (del observador).", "En el extremo derecho (del observador).", "En el centro.", "A la izquierda del centro geométrico."], answer: "En el centro.", explanation: "El centro es el lugar de máximo honor en estrados de presidencia única." },
+            { id: 16, question: "Si el número de autoridades en la presidencia es IMPAR (e.g., 5 personas), ¿dónde se sitúa el de mayor precedencia?", options: ["En el extremo derecho.", "En el centro.", "A la derecha del centro geométrico.", "A la izquierda del centro geométrico."], answer: "En el centro.", explanation: "Con número impar, el de mayor precedencia ocupa el centro, el segundo su derecha, el tercero su izquierda, y así sucesivamente (D-I-D-I...)."},
+            { id: 17, question: "Si el número de autoridades en la presidencia es PAR (e.g., 4 personas), ¿dónde se sitúa el de mayor precedencia?", options: ["En el centro.", "En el extremo izquierdo.", "A la derecha del centro geométrico.", "En el extremo derecho."], answer: "A la derecha del centro geométrico.", explanation: "Con número par, el de mayor precedencia se sitúa a la derecha del centro geométrico, y el segundo a la izquierda de dicho centro." },
+            { id: 18, question: "La presidencia compartida o dual es habitual en actos:", options: ["De tipo militar.", "Organizados por dos o más entidades de igual rango.", "Organizados por una entidad y presididos por el Rey.", "Solo en el ámbito privado."], answer: "Organizados por dos o más entidades de igual rango.", explanation: "La presidencia dual se da cuando dos entidades de similar importancia comparten la organización y el lugar de honor." },
+            { id: 19, question: "En un acto con el Rey, ¿qué tipo de presidencia se establece siempre?", options: ["Presidencia por cesión.", "Presidencia única del anfitrión.", "Presidencia Real.", "Presidencia de hecho."], answer: "Presidencia Real.", explanation: "La presencia del Jefe de Estado (el Rey) establece una presidencia de máximo rango que se rige por normativa específica de la Casa Real." },
+            { id: 20, question: "La correcta ordenación de la presidencia en un acto es un acto de:", options: ["Sencillez.", "Comodidad.", "Reconocimiento y respeto institucional.", "Publicidad."], answer: "Reconocimiento y respeto institucional.", explanation: "El correcto uso de la presidencia comunica el debido respeto a la jerarquía de los asistentes." },
+
+            // 3. Normas de Precedencia (21-30)
+            { id: 21, question: "¿Cuál es el principal documento legal que regula las precedencias en España a nivel estatal?", options: ["La Constitución Española.", "El Real Decreto 2099/1983 o normas posteriores similares.", "La Ley de Banderas.", "El Código Civil."], answer: "El Real Decreto 2099/1983 o normas posteriores similares.", explanation: "Este Real Decreto es la norma de referencia para el ordenamiento general de las precedencias oficiales en España, aunque se hayan producido adaptaciones posteriores." },
+            { id: 22, question: "Cuando concurren dos autoridades de distinto rango, ¿qué criterio es el prioritario?", options: ["La edad.", "El rango o la categoría del cargo.", "La antigüedad en el cargo.", "El orden alfabético."], answer: "El rango o la categoría del cargo.", explanation: "El rango es el criterio fundamental y primordial de precedencia." },
+            { id: 23, question: "Si dos autoridades tienen el mismo rango, ¿qué criterio se aplica para desempatar la precedencia?", options: ["El orden alfabético del apellido.", "La antigüedad en el cargo.", "La proximidad geográfica.", "El sorteo."], answer: "La antigüedad en el cargo.", explanation: "Ante igual rango, la antigüedad en el desempeño del cargo sirve como criterio de desempate." },
+            { id: 24, question: "En la ordenación de las Comunidades Autónomas, el criterio predominante es:", options: ["El número de habitantes.", "La fecha de aprobación del Estatuto de Autonomía.", "El orden de creación de la bandera.", "El PIB de la región."], answer: "La fecha de aprobación del Estatuto de Autonomía.", explanation: "La precedencia de las Comunidades Autónomas se establece por el orden cronológico de publicación en el BOE de sus Estatutos de Autonomía." },
+            { id: 25, question: "¿Dónde se aplica la norma de la 'precedencia local'?", options: ["En actos en el extranjero.", "En la Sede de la Presidencia del Gobierno.", "En el ámbito de la Comunidad Autónoma correspondiente.", "En todos los actos que se celebren en la demarcación territorial de un Ente Local (Provincia/Municipio)."], answer: "En todos los actos que se celebren en la demarcación territorial de un Ente Local (Provincia/Municipio).", explanation: "La autoridad local o territorial correspondiente es la primera en su demarcación, salvo presencia de autoridades de rango superior." },
+            { id: 26, question: "La regla de 'Rigurosa Proximidad' se aplica en el protocolo para determinar:", options: ["El orden de los discursos.", "La colocación del resto de invitados que no están en presidencia.", "El orden de las provincias en la lista.", "La jerarquía de los Ministros."], answer: "La colocación del resto de invitados que no están en presidencia.", explanation: "Se usa para ordenar a los invitados de menor rango que se sitúan inmediatamente detrás de la presidencia, reflejando su cercanía a esta." },
+            { id: 27, question: "¿Qué implica la 'ordenación decreciente' en protocolo?", options: ["El ordenamiento de menor a mayor rango.", "El ordenamiento por edad.", "El ordenamiento de mayor a menor rango (más importante primero).", "El ordenamiento por orden de llegada."], answer: "El ordenamiento de mayor a menor rango (más importante primero).", explanation: "La mayoría de las listas de precedencia se establecen de forma decreciente, siendo el número 1 el de mayor rango." },
+            { id: 28, question: "Si en un acto coinciden un Ministro de España y un Ministro de Asuntos Exteriores de otro país, ¿quién tiene prioridad?", options: ["El Ministro de España, por ser acto nacional.", "El Ministro extranjero, por protocolo internacional.", "El de mayor edad.", "Depende de la Presidencia por cortesía."], answer: "El Ministro de España, por ser acto nacional.", explanation: "En actos nacionales, las autoridades nacionales prevalecen sobre las extranjeras de igual rango, salvo excepciones diplomáticas o presidencia por cesión." },
+            { id: 29, question: "En un mismo nivel de precedencia (mismo escalón del listado oficial), ¿qué criterio se utiliza si se agota el de antigüedad?", options: ["El de edad.", "El de orden alfabético (por apellido).", "El de cargo.", "El de número de teléfono."], answer: "El de orden alfabético (por apellido).", explanation: "Tras el rango y la antigüedad, el orden alfabético suele ser el desempate final para personas de idéntica categoría." },
+            { id: 30, question: "La normativa de protocolo busca evitar, principalmente:", options: ["Los retrasos.", "Las improvisaciones y los agravios comparativos.", "Los discursos largos.", "La mala comida."], answer: "Las improvisaciones y los agravios comparativos.", explanation: "El objetivo es establecer un marco claro para que no haya dudas sobre el honor y la posición de cada institución o persona." },
+
+            // 4. Disposición Espacial en las Mesas (31-40)
+            { id: 31, question: "En la disposición espacial en una mesa, la 'disposición a la francesa' se caracteriza por:", options: ["La presidencia en los extremos (cabecera).", "La presidencia en el centro.", "Alternar hombres y mujeres en las cabeceras.", "Utilizar solo mesas redondas."], answer: "La presidencia en el centro.", explanation: "La presidencia 'a la francesa' sitúa a los anfitriones en el centro de la mesa larga, uno frente al otro o juntos." },
+            { id: 32, question: "En la disposición espacial en una mesa, la 'disposición a la inglesa' se caracteriza por:", options: ["Colocar a los invitados por orden alfabético.", "La presidencia en el centro.", "La presidencia en los extremos (cabecera).", "Excluir la alternancia de sexos."], answer: "La presidencia en los extremos (cabecera).", explanation: "La presidencia 'a la inglesa' sitúa a los anfitriones en las cabeceras (extremos) de la mesa." },
+            { id: 33, question: "Según el orden de precedencias, ¿dónde se sienta el invitado de mayor rango en una mesa?", options: ["A la izquierda del anfitrión.", "A la derecha del anfitrión.", "Frente al anfitrión.", "Junto al invitado más joven."], answer: "A la derecha del anfitrión.", explanation: "El lugar de honor inmediato es siempre a la derecha del anfitrión (presidente)." },
+            { id: 34, question: "¿Quién ocupa el segundo lugar de honor en la mesa (en la mayoría de los sistemas)?", options: ["El invitado más joven.", "El segundo invitado en precedencia, a la izquierda del anfitrión.", "El cónyuge del anfitrión.", "La persona que preside de hecho."], answer: "El segundo invitado en precedencia, a la izquierda del anfitrión.", explanation: "El segundo lugar de honor es a la izquierda del anfitrión, siguiendo el criterio D-I-D-I... a partir del presidente." },
+            { id: 35, question: "La regla de cortesía de 'alternancia de sexos' se considera una norma de:", options: ["Precedencia oficial.", "Vexilología.", "Adaptación social (etiqueta).", "Protocolo militar."], answer: "Adaptación social (etiqueta).", explanation: "La alternancia de hombre y mujer es una norma de cortesía y buenas maneras, no de la precedencia oficial de cargos." },
+            { id: 36, question: "¿Cómo se debe sentar una pareja oficial (matrimonio, pareja de hecho) en una mesa?", options: ["Siempre juntos, uno al lado del otro.", "Siempre separados por otras personas.", "Depende del tipo de acto, pero generalmente separados si el acto es de alta precedencia.", "Solo si el acto es social."], answer: "Depende del tipo de acto, pero generalmente separados si el acto es de alta precedencia.", explanation: "En actos de alta precedencia o diplomáticos, las parejas se separan para que ambos puedan conversar con personas de diferente rango. En actos sociales, pueden ir juntos." },
+            { id: 37, question: "¿Qué forma de mesa es la más adecuada para fomentar la conversación e igualdad entre todos los comensales?", options: ["Mesa rectangular.", "Mesa en forma de U.", "Mesa redonda.", "Mesa ovalada."], answer: "Mesa redonda.", explanation: "La mesa redonda elimina las cabeceras de honor y fomenta la interacción horizontal. Es la más democrática." },
+            { id: 38, question: "En una mesa presidencial, la colocación 'por orden numérico' (1, 2, 3...) se refiere a:", options: ["La edad.", "La jerarquía según la lista oficial de precedencias.", "El orden alfabético.", "La altura."], answer: "La jerarquía según la lista oficial de precedencias.", explanation: "Los números (1º, 2º, 3º...) se asignan estrictamente según la posición en la lista de precedencias." },
+            { id: 39, question: "¿Qué se debe evitar a toda costa en la colocación de la mesa, relacionado con la visibilidad?", options: ["Colocar a alguien de espaldas a la puerta.", "Sentar a dos personas del mismo rango juntas.", "Tener la mesa demasiado decorada.", "Colocar a alguien de espaldas al resto de la sala o a una vista importante."], answer: "Colocar a alguien de espaldas al resto de la sala o a una vista importante.", explanation: "El puesto de honor debe tener buena visibilidad y nunca dar la espalda a la sala, puerta o elemento principal." },
+            { id: 40, question: "El sistema de colocación 'pari-passu' o 'por igual' se aplica cuando:", options: ["Solo hay un invitado.", "Los invitados tienen el mismo rango y se decide no aplicar desempate riguroso.", "La mesa es muy grande.", "El anfitrión quiere romper el protocolo."], answer: "Los invitados tienen el mismo rango y se decide no aplicar desempate riguroso.", explanation: "Se usa para tratar a todos los invitados por igual, generalmente en reuniones técnicas o cuando el rango es idéntico y no se desea aplicar desempates." },
+
+            // 5. Protocolo y Adaptación Social (41-50)
+            { id: 41, question: "La 'Adaptación Social' en protocolo se relaciona con:", options: ["Las leyes de rango.", "El protocolo internacional.", "La etiqueta y las buenas maneras.", "El reglamento interno de la institución."], answer: "La etiqueta y las buenas maneras.", explanation: "La adaptación social son las normas de cortesía, vestimenta y comportamiento en sociedad." },
+            { id: 42, question: "¿Qué debe primar siempre sobre la norma rígida del protocolo?", options: ["La improvisación.", "La comodidad de los invitados.", "La cortesía y el sentido común.", "La antigüedad del anfitrión."], answer: "La cortesía y el sentido común.", explanation: "El protocolo debe ser flexible y adaptarse a las circunstancias, priorizando siempre la cortesía y la comodidad del invitado de honor." },
+            { id: 43, question: "El 'Código de Vestimenta' (dress code) es un elemento clave de:", options: ["Vexilología.", "Presidencia.", "Adaptación social.", "Tratamientos."], answer: "Adaptación social.", explanation: "La vestimenta es una de las primeras formas de comunicación no verbal en un acto social o institucional." },
+            { id: 44, question: "Si se celebra un acto en un país extranjero, ¿qué protocolo se aplica prioritariamente?", options: ["El protocolo del país anfitrión.", "El protocolo internacional.", "El protocolo del país invitado.", "Una mezcla de todos."], answer: "El protocolo del país anfitrión.", explanation: "La norma básica de cortesía internacional es respetar los usos y costumbres del país que acoge el acto." },
+            { id: 45, question: "¿Qué es el 'fondo de armario' protocolario?", options: ["La decoración de la sala.", "Los platos y copas de la mesa.", "La colección de banderas.", "El conjunto de vestimenta adecuado para distintos tipos de actos."], answer: "El conjunto de vestimenta adecuado para distintos tipos de actos.", explanation: "Se refiere a la ropa de etiqueta (smoking, traje de gala, chaqué) que una persona debe poseer para asistir a actos con código de vestimenta." },
+            { id: 46, question: "La regla de que el invitado de honor siempre es servido o atendido primero es un ejemplo de:", options: ["Precedencia legal.", "Cortesia social.", "Norma de vexilología.", "Regla de antigüedad."], answer: "Cortesia social.", explanation: "Son gestos que denotan la importancia del invitado, parte de la etiqueta social." },
+            { id: 47, question: "¿En qué tipo de eventos la adaptación social puede ser más flexible que el protocolo oficial?", options: ["Una visita de Estado.", "Una cena de gala en la Moncloa.", "Un acto cultural o deportivo de carácter local.", "Una cumbre de Jefes de Gobierno."], answer: "Un acto cultural o deportivo de carácter local.", explanation: "Cuanto menor es el rango oficial del acto, mayor es la influencia de la costumbre y la flexibilidad social." },
+            { id: 48, question: "El uso del teléfono móvil durante un acto oficial debe ser:", options: ["Visible para todos.", "Silenciado o evitado totalmente.", "Usado solo por la prensa.", "Usado para grabar el discurso."], answer: "Silenciado o evitado totalmente.", explanation: "El uso del móvil distrae y denota falta de respeto al acto y a los asistentes, siendo una falta de etiqueta." },
+            { id: 49, question: "Al saludar a una autoridad de mayor rango, el gesto adecuado es:", options: ["Una inclinación ligera y un apretón de manos firme.", "Un abrazo efusivo.", "Mantener las manos en los bolsillos.", "Un beso en la mejilla."], answer: "Una inclinación ligera y un apretón de manos firme.", explanation: "El apretón de manos es el saludo estándar, acompañado de una ligera inclinación si es una muy alta autoridad." },
+            { id: 50, question: "El conjunto de reglas, usos y costumbres en un determinado entorno social o profesional se define como:", options: ["Jerarquía.", "Etiqueta.", "Reglamento.", "Decreto."], answer: "Etiqueta.", explanation: "La etiqueta son las normas de comportamiento para situaciones sociales específicas, complementarias al protocolo oficial." },
+
+            // 6. Protocolo de Órganos Colegiados (51-60)
+            { id: 51, question: "Un 'Órgano Colegiado' se define por ser un cuerpo de personas que actúan:", options: ["De forma individual.", "Como cuerpo único para tomar decisiones.", "Solo como observadores.", "Solo para funciones consultivas."], answer: "Como cuerpo único para tomar decisiones.", explanation: "La clave es que las decisiones se toman por el Pleno o la Junta, actuando como una única entidad institucional (ej. Consejo de Ministros)." },
+            { id: 52, question: "En un órgano colegiado, ¿qué factor suele regir la precedencia de sus miembros en el ámbito interno?", options: ["La edad.", "El día de su cumpleaños.", "Antigüedad en el nombramiento o la elección.", "La popularidad."], answer: "Antigüedad en el nombramiento o la elección.", explanation: "A menudo, el criterio de desempate en la precedencia interna es la fecha de nombramiento o elección." },
+            { id: 53, question: "¿Quién ostenta la presidencia en el Pleno de un Ayuntamiento?", options: ["El concejal más joven.", "El Alcalde.", "El Secretario Municipal.", "El Portavoz del partido mayoritario."], answer: "El Alcalde.", explanation: "El Alcalde es la máxima autoridad del Ente Local y preside el Pleno de la Corporación." },
+            { id: 54, question: "La disposición espacial de los miembros de un órgano colegiado en una sala (e.g., Pleno) debe reflejar:", options: ["El coste de su sueldo.", "Su afinidad política.", "Su jerarquía interna y su orden de intervención.", "Su estado civil."], answer: "Su jerarquía interna y su orden de intervención.", explanation: "La colocación debe ser funcional para el debate y simbólica de la jerarquía." },
+            { id: 55, question: "¿Qué se sitúa siempre al lado o ligeramente detrás del presidente en un órgano colegiado (e.g., el Secretario en un Pleno)?", options: ["El tesorero.", "La persona que asiste y da fe de los acuerdos.", "El jefe de prensa.", "El miembro más joven."], answer: "La persona que asiste y da fe de los acuerdos.", explanation: "El Secretario o figura similar suele ocupar una posición funcional cercana al presidente para dar fe pública." },
+            { id: 56, question: "La ordenación de los miembros de un órgano colegiado puede regirse por el sistema de:", options: ["Distribución por antigüedad (mayor antigüedad, mayor precedencia).", "Distribución por sorteo.", "Distribución por orden alfabético puro.", "Distribución por color de la ropa."], answer: "Distribución por antigüedad (mayor antigüedad, mayor precedencia).", explanation: "La antigüedad en el puesto suele ser un criterio clave en órganos como Parlamentos o Consejos." },
+            { id: 57, question: "¿Qué diferencia la colocación en un órgano colegiado de la de una mesa de cena?", options: ["Se permite la alternancia de sexos en el Pleno.", "La colocación en el Pleno es más funcional y se orienta a la intervención.", "La precedencia no se aplica en los Plenos.", "Solo se usa la disposición a la francesa."], answer: "La colocación en el Pleno es más funcional y se orienta a la intervención.", explanation: "Mientras la mesa de cena es social, la colocación en un Pleno es jerárquica, pero también práctica para el desarrollo de las sesiones (microfonía, visibilidad)." },
+            { id: 58, question: "En el Consejo de Ministros, la precedencia se rige por:", options: ["El orden de creación de sus Ministerios.", "El orden de nombramiento (antigüedad).", "El orden alfabético.", "La edad del Ministro."], answer: "El orden de nombramiento (antigüedad).", explanation: "Tras el Presidente y el Vicepresidente/s, los Ministros se ordenan por la fecha de publicación de su nombramiento." },
+            { id: 59, question: "Si un órgano colegiado tiene sus propias normas internas de precedencia, ¿estas prevalecen sobre el Real Decreto de Precedencias?", options: ["Sí, en su ámbito interno.", "No, nunca.", "Solo si el presidente es extranjero.", "Solo si son normas anteriores al Real Decreto."], answer: "Sí, en su ámbito interno.", explanation: "Las normas internas (e.g., Reglamentos del Congreso o Senado) tienen prioridad en la ordenación de sus propios miembros." },
+            { id: 60, question: "La mesa de un órgano colegiado suele ser en forma de:", options: ["Herramienta.", "Línea o semicírculo.", "Flor.", "Triángulo."], answer: "Línea o semicírculo.", explanation: "La línea (o U) o semicírculo permite que todos los miembros se vean y que el presidente tenga una visión clara." },
+
+            // 7. Protocolo Oficial en Comunidades Autónomas y Entes Locales (61-70)
+            { id: 61, question: "La máxima autoridad protocolaria de una Comunidad Autónoma es:", options: ["El Delegado del Gobierno.", "El Presidente del Tribunal Superior de Justicia.", "El Presidente de la Comunidad Autónoma.", "El Presidente del Parlamento Autonómico."], answer: "El Presidente de la Comunidad Autónoma.", explanation: "El Presidente autonómico es la figura más importante en los actos que se desarrollen en su territorio, salvo la presencia del Rey." },
+            { id: 62, question: "El criterio principal para la precedencia entre las Comunidades Autónomas es:", options: ["Antigüedad del Estatuto de Autonomía.", "Orden alfabético.", "Extensión territorial.", "Número de votos en las últimas elecciones."], answer: "Antigüedad del Estatuto de Autonomía.", explanation: "El orden de aprobación y publicación en el BOE del Estatuto determina la posición relativa." },
+            { id: 63, question: "¿Qué autoridad representa al Estado central en una Comunidad Autónoma?", options: ["El Alcalde.", "El Presidente Autonómico.", "El Delegado del Gobierno.", "El Presidente del Tribunal Superior de Justicia."], answer: "El Delegado del Gobierno.", explanation: "El Delegado del Gobierno ostenta la representación del Gobierno de la Nación en la Comunidad." },
+            { id: 64, question: "En un acto celebrado en un municipio, ¿qué autoridad local tiene la máxima precedencia?", options: ["El concejal más veterano.", "El Juez de Paz.", "El Alcalde.", "El Presidente de la Diputación."], answer: "El Alcalde.", explanation: "El Alcalde es la máxima autoridad en la demarcación municipal." },
+            { id: 65, question: "En un acto de la Comunidad Autónoma, la bandera autonómica debe colocarse:", options: ["A la izquierda de la bandera local.", "Siempre a la derecha de la bandera de España.", "En el extremo derecho.", "Por encima de todas las demás."], answer: "Siempre a la derecha de la bandera de España.", explanation: "La bandera nacional tiene precedencia, y la autonómica se sitúa inmediatamente después, a la derecha de la presidencia (izquierda del observador) y a la izquierda de la nacional." },
+            { id: 66, question: "Si el Presidente de la Comunidad Autónoma y el Delegado del Gobierno coinciden en un acto autonómico, ¿quién preside, salvo norma en contrario?", options: ["El Delegado del Gobierno.", "El Presidente Autonómico.", "El de mayor edad.", "El Rey."], answer: "El Presidente Autonómico.", explanation: "En los actos de la C.A., preside el Presidente de la C.A., seguido por el Delegado del Gobierno (representante del Estado)." },
+            { id: 67, question: "Los órganos de gobierno de las Comunidades Autónomas (Consejos de Gobierno) se consideran:", options: ["Actos sociales.", "Órganos unipersonales.", "Órganos colegiados.", "Organismos sin protocolo."], answer: "Órganos colegiados.", explanation: "Los Consejos de Gobierno toman decisiones de forma conjunta, siendo colegiados." },
+            { id: 68, question: "¿Qué criterio suele ordenar las provincias o islas dentro de una misma Comunidad Autónoma en los actos oficiales?", options: ["Orden alfabético o territorial histórico.", "Antigüedad del nacimiento de sus capitales.", "Orden de población.", "Orden de riqueza."], answer: "Orden alfabético o territorial histórico.", explanation: "Se suele recurrir al orden alfabético de las provincias/islas o a un orden tradicional geográfico/histórico." },
+            { id: 69, question: "En un acto organizado por una Diputación Provincial, la autoridad de mayor rango, tras el Presidente de la Diputación, suele ser:", options: ["El Alcalde de la capital.", "El Subdelegado del Gobierno en la provincia.", "El Concejal más antiguo.", "El Presidente de la C.A."], answer: "El Subdelegado del Gobierno en la provincia.", explanation: "El Subdelegado del Gobierno representa al Estado en la provincia y sigue al Presidente de la Diputación en precedencia provincial." },
+            { id: 70, question: "La ordenación de las Corporaciones Locales se rige por:", options: ["El Real Decreto de Precedencias.", "Las normas internas de la Corporación y usos locales.", "Solo la Ley de Banderas.", "La voluntad del Alcalde."], answer: "Las normas internas de la Corporación y usos locales.", explanation: "Los Ayuntamientos y Diputaciones tienen sus propios reglamentos orgánicos y usos tradicionales de protocolo." },
+
+            // 8. Los Tratamientos Protocolarios (71-80)
+            { id: 71, question: "El tratamiento de 'Excelentísimo/a Señor/a' (Excmo./a.) se aplica generalmente a:", options: ["Subsecretarios y Directores Generales.", "Ministros, Presidentes Autonómicos y Alcaldes de capitales de provincia.", "Concejales y Tenientes de Alcalde.", "Funcionarios de nivel básico."], answer: "Ministros, Presidentes Autonómicos y Alcaldes de capitales de provincia.", explanation: "Es el tratamiento más alto de la Administración General del Estado (Excmo.) y de la C.A." },
+            { id: 72, question: "El tratamiento de 'Ilustrísimo/a Señor/a' (Iltmo./a.) corresponde habitualmente a:", options: ["Jefes de Estado.", "Subsecretarios y Directores Generales (dependiendo del rango).", "El Rey.", "Alcaldes de grandes ciudades."], answer: "Subsecretarios y Directores Generales (dependiendo del rango).", explanation: "Este tratamiento se aplica a ciertos cargos intermedios y a algunos títulos nobiliarios." },
+            { id: 73, question: "¿Qué tratamiento corresponde al Rey de España?", options: ["Excelencia.", "Señoría.", "Majestad.", "Alteza."], answer: "Majestad.", explanation: "El tratamiento de 'Majestad' se utiliza para Jefes de Estado de Monarquía." },
+            { id: 74, question: "El tratamiento de 'Señoría' (Sra./Sría.) es común para:", options: ["El Presidente del Gobierno.", "Concejales, ciertos jueces o cargos intermedios.", "Embajadores.", "El Papa."], answer: "Concejales, ciertos jueces o cargos intermedios.", explanation: "Es un tratamiento de respeto reservado a cargos de rango menor al de Ilustrísimo, pero que ostentan cierta autoridad (e.g., Concejales, Magistrados)." },
+            { id: 75, question: "El tratamiento que se utiliza para los Cónsules es habitualmente:", options: ["Excelentísimo.", "Magnífico.", "Señoría Ilustrísima.", "Excelentísimo Señor/a o Ilustrísimo Señor/a, según el rango del Cónsul."], answer: "Excelentísimo Señor/a o Ilustrísimo Señor/a, según el rango del Cónsul.", explanation: "Depende de si son Cónsules Generales (Excmo.) o Cónsules (Iltmo.), aunque muchos cargos consulares usan tratamientos de cortesía." },
+            { id: 76, question: "¿En qué formato se utilizan los tratamientos protocolarios?", options: ["Solo de forma oral.", "Solo de forma escrita.", "De forma verbal o escrita.", "Solo en las tarjetas de visita."], answer: "De forma verbal o escrita.", explanation: "Los tratamientos se aplican tanto al hablar con la autoridad como al dirigirse a ella en documentos oficiales." },
+            { id: 77, question: "El tratamiento de 'Magnífico/a' se reserva en España a:", options: ["Miembros del Consejo de Estado.", "Rectores de Universidad.", "Jefes de las Fuerzas Armadas.", "El Presidente del Congreso."], answer: "Rectores de Universidad.", explanation: "Es el tratamiento tradicional y formal de los Rectores de las Universidades." },
+            { id: 78, question: "Cuando una autoridad ostenta varios tratamientos por diferentes cargos o condecoraciones, ¿cuál se utiliza?", options: ["El más simple.", "El más alto o preeminente.", "El más largo.", "El que mejor suene."], answer: "El más alto o preeminente.", explanation: "Siempre se aplica el tratamiento de mayor rango entre los que ostente la persona." },
+            { id: 79, question: "El tratamiento de 'Alteza Real' corresponde a:", options: ["El Presidente de una Autonomía.", "El Presidente del Gobierno.", "Los Príncipes de la Familia Real.", "Los Obispos."], answer: "Los Príncipes de la Familia Real.", explanation: "Es el tratamiento reservado a los herederos y otros miembros directos de la Familia Real." },
+            { id: 80, question: "La omisión intencionada del tratamiento protocolario correcto a una autoridad se considera:", options: ["Un gesto de modernidad.", "Una falta protocolaria grave.", "Una práctica aceptada.", "Una muestra de confianza."], answer: "Una falta protocolaria grave.", explanation: "El tratamiento correcto es un signo de respeto; su omisión se interpreta como una falta de respeto institucional." },
+
+            // 9. Vexilología (Ordenación de Banderas) (81-90)
+            { id: 81, question: "Según la vexilología oficial, ¿qué bandera debe ondear siempre en un lugar de honor en cualquier acto en España?", options: ["La bandera local.", "La bandera de la Comunidad Autónoma.", "La bandera Nacional de España.", "La bandera de la Unión Europea."], answer: "La bandera Nacional de España.", explanation: "La bandera nacional tiene precedencia absoluta sobre cualquier otra enseña." },
+            { id: 82, question: "Si se colocan dos banderas (A: España, B: Autonómica), ¿dónde se sitúa la bandera de España respecto al observador?", options: ["A la izquierda.", "A la derecha.", "En el centro.", "Depende del tamaño."], answer: "A la izquierda.", explanation: "El lugar de honor (máxima precedencia) es a la derecha de la presidencia, lo que se traduce en la izquierda del observador." },
+            { id: 83, question: "Si se colocan tres banderas (A: Nacional, B: Autonómica, C: Local), ¿cuál ocupa la posición central?", options: ["La bandera Nacional.", "La bandera Autonómica.", "La bandera Local.", "La que el anfitrión decida."], answer: "La bandera Nacional.", explanation: "En número impar, la de máxima precedencia va al centro (posición de honor absoluta)." },
+            { id: 84, question: "Si se colocan tres banderas (Nacional, Autonómica, Local), ¿qué lugar ocupa la bandera Local desde el punto de vista del observador?", options: ["El centro.", "La izquierda (la más alejada de la nacional).", "La derecha (la más alejada de la nacional).", "Depende del orden alfabético."], answer: "La izquierda (la más alejada de la nacional).", explanation: "El orden (desde el observador) es Izquierda (Local), Centro (Nacional), Derecha (Autonómica). El orden de precedencia es N-A-L." },
+            { id: 85, question: "Si hay un número PAR de banderas (e.g., 4: Nacional, Autonómica, Local, UE), ¿dónde se sitúa la bandera Nacional?", options: ["En el centro geométrico.", "A la izquierda del centro geométrico.", "A la derecha del centro geométrico.", "En el extremo derecho."], answer: "A la derecha del centro geométrico.", explanation: "Con número par, la bandera Nacional (1ª) se desplaza a la derecha del centro geométrico, y la segunda (Autonómica) a la izquierda de ese centro." },
+            { id: 86, question: "La 'media asta' en las banderas es un gesto de:", options: ["Fiesta.", "Duelo o luto.", "Celebración deportiva.", "Cambio de gobierno."], answer: "Duelo o luto.", explanation: "Es la forma tradicional de honrar a los fallecidos o declarar luto oficial." },
+            { id: 87, question: "¿Qué bandera no puede ocupar nunca el lugar de honor junto a la bandera Nacional en actos oficiales en España?", options: ["La bandera Autonómica.", "La bandera Local.", "La bandera de un país extranjero.", "Todas las anteriores pueden ocupar posiciones de honor."], answer: "La bandera de un país extranjero.", explanation: "Según el Real Decreto, la bandera nacional no puede ir acompañada de banderas extranjeras en actos internos, salvo protocolo internacional." },
+            { id: 88, question: "Si la bandera se coloca en un mástil en la fachada de un edificio, el lugar de honor es:", options: ["El mástil de la izquierda del edificio.", "El mástil central.", "El mástil más bajo.", "El mástil que esté más cerca de la entrada."], answer: "El mástil central.", explanation: "El centro es siempre el lugar de máximo honor." },
+            { id: 89, question: "La regla de precedencia entre banderas territoriales (Autonómicas y Locales) se establece generalmente por:", options: ["Orden alfabético de su denominación.", "Fecha de creación de la bandera.", "Tamaño del territorio que representan.", "Antigüedad del estatuto de autonomía/municipio."], answer: "Orden alfabético de su denominación.", explanation: "Las banderas se ordenan tras la nacional por el orden alfabético de la entidad territorial que representan." },
+            { id: 90, question: "¿Qué se debe hacer con el Escudo Nacional en la bandera durante el luto oficial?", options: ["Quitarlo.", "Poner una cinta negra o crespón.", "Pintarlo de negro.", "Nada, el luto solo afecta a la posición."], answer: "Poner una cinta negra o crespón.", explanation: "La bandera en media asta va acompañada del crespón negro si se coloca en un mástil fijo." },
+
+            // 10. Protocolo Internacional (91-100)
+            { id: 91, question: "El protocolo internacional rige fundamentalmente las relaciones entre:", options: ["Empresas privadas.", "Personas y autoridades en un mismo país.", "Estados y organismos internacionales.", "Comunidades de vecinos."], answer: "Estados y organismos internacionales.", explanation: "Se ocupa de las normas y usos entre diferentes naciones u organizaciones supranacionales." },
+            { id: 92, question: "El documento base del protocolo diplomático moderno es el:", options: ["Tratado de Lisboa.", "Convenio de Viena sobre Relaciones Diplomáticas (1961).", "Pacto de Letrán.", "Protocolo de Kioto."], answer: "Convenio de Viena sobre Relaciones Diplomáticas (1961).", explanation: "Este convenio codificó la mayoría de las normas relativas a las misiones diplomáticas." },
+            { id: 93, question: "El orden de precedencia de los Embajadores en un país se establece por:", options: ["Su edad.", "La antigüedad de su nombramiento y presentación de Cartas Credenciales.", "El tamaño de su país.", "El PIB de su país."], answer: "La antigüedad de su nombramiento y presentación de Cartas Credenciales.", explanation: "La fecha de la entrega de las Cartas Credenciales al Jefe de Estado del país anfitrión es el criterio que establece la antigüedad en el Cuerpo Diplomático." },
+            { id: 94, question: "El conjunto de reglas que rigen las visitas de Jefes de Estado, de Gobierno o ministros de Asuntos Exteriores se denomina:", options: ["Pórtico Diplomático.", "Visita de Cortesía.", "Pacto de Caballeros.", "Acto Consular."], answer: "Pórtico Diplomático.", explanation: "Son las normas que se aplican a las visitas de alto nivel." },
+            { id: 95, question: "¿Qué principio fundamental debe seguir el protocolo de un país al organizar un acto internacional?", options: ["Aplicar solo sus propias normas.", "Respetar las costumbres y usos del país o institución invitada.", "No tener normas escritas.", "No usar banderas."], answer: "Respetar las costumbres y usos del país o institución invitada.", explanation: "La cortesía y la reciprocidad son clave en el protocolo internacional." },
+            { id: 96, question: "Cuando en un estrado hay dos Jefes de Estado (Anfitrión e Invitado), ¿dónde se sitúa el Anfitrión?", options: ["A la izquierda del observador.", "A la derecha del observador.", "En el centro.", "Frente al observador."], answer: "A la derecha del observador.", explanation: "En protocolo internacional, el anfitrión se sitúa a la derecha (posición de honor) y el invitado a la izquierda." },
+            { id: 97, question: "¿Qué tratamiento se utiliza para Jefes de Gobierno de Repúblicas (e.g., Presidentes sin monarquía)?", options: ["Su Majestad.", "Su Alteza.", "Excelentísimo Señor Presidente/a.", "Su Santidad."], answer: "Excelentísimo Señor Presidente/a.", explanation: "El tratamiento de Excelencia (o similar) es el estándar para Jefes de Gobierno y la mayoría de los Presidentes." },
+            { id: 98, question: "La 'reciprocidad' en protocolo internacional significa:", options: ["Ofrecer siempre el mismo menú.", "Que el trato dado al invitado debe ser similar al que se recibiría en su país.", "Que siempre se debe aplaudir.", "Que solo se usa un idioma."], answer: "Que el trato dado al invitado debe ser similar al que se recibiría en su país.", explanation: "La reciprocidad garantiza un equilibrio en el trato y el honor." },
+            { id: 99, question: "¿Cuál de estos elementos es más crítico en un acto internacional que en uno nacional?", options: ["La música.", "La traducción y la interpretación.", "El color de las flores.", "El tamaño de los platos."], answer: "La traducción y la interpretación.", explanation: "La barrera idiomática hace que la traducción y la correcta interpretación de gestos sean esenciales." },
+            { id: 100, question: "En un acto internacional, la bandera de la organización internacional (e.g., ONU) se sitúa generalmente:", options: ["A la derecha de la bandera nacional.", "En el centro, junto a la bandera del país anfitrión.", "En el extremo derecho de la fila de banderas.", "Siguiendo el orden alfabético de la organización."], answer: "En el extremo derecho de la fila de banderas.", explanation: "Las banderas de organizaciones internacionales suelen ir al final de la formación, después de las banderas nacionales y territoriales." },
+
+            // 11. Preguntas Adicionales (101-130+)
+            { id: 101, question: "En los actos con el Rey, ¿quién se sitúa a la izquierda inmediata del Rey?", options: ["La Reina.", "El segundo en precedencia.", "El Presidente del Gobierno.", "El anfitrión del acto."], answer: "La Reina.", explanation: "En la Presidencia Real, la Reina va a la izquierda del Rey, y el Presidente del Gobierno o anfitrión va a la derecha del Rey." },
+            { id: 102, question: "La normativa de protocolo se considera de carácter:", options: ["Obligatorio y vinculante.", "Opcional.", "Solo moral.", "Solo aplicable en cenas."], answer: "Obligatorio y vinculante.", explanation: "Las normas protocolarias oficiales (Reales Decretos) son de obligado cumplimiento para la Administración Pública." },
+            { id: 103, question: "La 'Presidencia por sustitución' ocurre cuando:", options: ["Dos personas deciden presidir juntas.", "El titular cede a un invitado.", "El titular no puede asistir y preside su sustituto legal.", "El Alcalde es el anfitrión de hecho."], answer: "El titular no puede asistir y preside su sustituto legal.", explanation: "El sustituto legal (e.g., Vicepresidente por el Presidente) asume todas las funciones, incluida la presidencia." },
+            { id: 104, question: "Si en un mismo acto se superponen la precedencia de un Ente Local y la de la Comunidad Autónoma, ¿cuál tiene prioridad?", options: ["La del Ente Local.", "La de la Comunidad Autónoma.", "La del organismo que convoca.", "La de la antigüedad."], answer: "La del organismo que convoca.", explanation: "La precedencia del acto la marca el organismo que organiza, siendo el anfitrión el que establece la cabecera, siguiendo la jerarquía de los asistentes." },
+            { id: 105, question: "¿Cuál es el color de las cintas de las condecoraciones de máximo rango en España?", options: ["Azul.", "Rojo.", "Amarillo.", "Depende de la condecoración."], answer: "Depende de la condecoración.", explanation: "Cada condecoración (e.g., Gran Cruz de Carlos III, Mérito Militar) tiene su propio color. No hay un color único." },
+            { id: 106, question: "En la ordenación por 'derecha/izquierda', la derecha es el lugar de honor y se sitúa:", options: ["A la izquierda del observador.", "A la derecha del observador.", "Frente al observador.", "Detrás de la presidencia."], answer: "A la izquierda del observador.", explanation: "El observador siempre ve el lugar de honor (la derecha de la presidencia) a su izquierda." },
+            { id: 107, question: "¿Qué es un 'puesto mojón' en la disposición de mesas?", options: ["El lugar de menor honor.", "El lugar donde termina la mesa.", "Un puesto que divide la mesa en dos partes iguales para la ordenación.", "El puesto del anfitrión."], answer: "Un puesto que divide la mesa en dos partes iguales para la ordenación.", explanation: "Es el punto de referencia a partir del cual se alternan los invitados, especialmente en mesas con presidencia central (a la francesa)." },
+            { id: 108, question: "En el saludo entre dos autoridades, ¿quién extiende la mano primero?", options: ["El de menor rango al de mayor rango.", "El de mayor rango al de menor rango.", "Ambos al mismo tiempo.", "El más joven."], answer: "El de mayor rango al de menor rango.", explanation: "Es una cortesía del de mayor rango hacia el de menor, o del anfitrión hacia el invitado." },
+            { id: 109, question: "Si en un acto protocolario no se mencionan los tratamientos correctos, el mensaje que se transmite es de:", options: ["Claridad.", "Sencillez y cercanía.", "Falta de formalidad o desconocimiento.", "Eficiencia."], answer: "Falta de formalidad o desconocimiento.", explanation: "Los tratamientos son la base del respeto formal a la institución y al cargo." },
+            { id: 110, question: "El orden de precedencia de los Ministerios se establece por:", options: ["Antigüedad de creación de cada Ministerio.", "Orden de antigüedad en el nombramiento del Ministro.", "Orden alfabético del nombre del Ministerio.", "El orden de la Constitución."], answer: "Antigüedad de creación de cada Ministerio.", explanation: "La posición de los Ministerios suele estar fijada por la fecha de su creación, salvo los que han sido creados o modificados recientemente, que se sitúan al final." },
+            { id: 111, question: "¿Qué se entiende por 'criterio de cortesía' en la ordenación?", options: ["El uso de la fuerza.", "La aplicación de una norma, aunque el anfitrión pueda flexibilizarla por deferencia al invitado.", "El sorteo de los puestos.", "La eliminación de toda norma."], answer: "La aplicación de una norma, aunque el anfitrión pueda flexibilizarla por deferencia al invitado.", explanation: "Permite al anfitrión hacer ligeras modificaciones al protocolo oficial para honrar o facilitar la posición del invitado de honor." },
+            { id: 112, question: "La persona que actúa como maestro de ceremonias o presentador de un acto se conoce como:", options: ["El anfitrión.", "El jefe de protocolo.", "El delegado.", "El orador."], answer: "El jefe de protocolo.", explanation: "El jefe de protocolo, o un maestro de ceremonias, es quien conduce el acto y anuncia las intervenciones." },
+            { id: 113, question: "La disposición de banderas en un balcón requiere que:", options: ["La bandera Nacional sea la más pequeña.", "Todas las banderas sean del mismo tamaño y calidad.", "Se usen al menos 5 banderas.", "Las banderas sean de colores diferentes."], answer: "Todas las banderas sean del mismo tamaño y calidad.", explanation: "Para mantener la armonía y el respeto institucional, las banderas deben ser de las mismas dimensiones y calidad." },
+            { id: 114, question: "¿Qué tipo de vestimenta se exige en actos de máxima solemnidad o ceremonias Reales?", options: ["Etiqueta casual.", "Traje oscuro.", "Chaqué, traje de gala o uniforme de gran etiqueta.", "Ropa deportiva."], answer: "Chaqué, traje de gala o uniforme de gran etiqueta.", explanation: "Son los códigos de vestimenta más formales." },
+            { id: 115, question: "El orden de intervención de los oradores en un acto debe seguir, generalmente:", options: ["Un orden decreciente de importancia, terminando con el más importante.", "Un orden ascendente de importancia, terminando con el más importante.", "El orden alfabético.", "El orden de la mesa."], answer: "Un orden ascendente de importancia, terminando con el más importante.", explanation: "Se comienza por el de menor rango y se finaliza con la máxima autoridad (o la persona que clausura el acto) para dar el máximo realce al final." },
+            { id: 116, question: "Si un acto es organizado por dos entidades (A y B) con precedencia similar, y el acto se celebra en la sede de A, ¿quién suele presidir?", options: ["El representante de B.", "El representante de A (por ser anfitrión de hecho).", "Un tercero imparcial.", "El más joven."], answer: "El representante de A (por ser anfitrión de hecho).", explanation: "La presidencia de hecho, por sede, suele primar en casos de concurrencia similar." },
+            { id: 117, question: "¿Qué es una 'visita de Estado' en protocolo internacional?", options: ["Una visita privada de un jefe de gobierno.", "La visita más formal de un Jefe de Estado a otro país.", "Una visita de un embajador.", "Un viaje de negocios."], answer: "La visita más formal de un Jefe de Estado a otro país.", explanation: "Es la visita de máximo rango, con los honores más altos." },
+            { id: 118, question: "El tratamiento de 'Excelentísimo y Reverendísimo Señor' corresponde a:", options: ["Obispos y Cardenales.", "Jefes de Estado.", "Rectores.", "Diputados."], answer: "Obispos y Cardenales.", explanation: "Es el tratamiento más alto dentro de la jerarquía eclesiástica." },
+            { id: 119, question: "En un acto de la Unión Europea, ¿qué bandera se sitúa en el centro o lugar de honor (junto a la nacional)?", options: ["La de la UE.", "La de España.", "La de Francia.", "La de Alemania."], answer: "La de España.", explanation: "En España, la bandera Nacional siempre mantiene su precedencia. La UE se sitúa como una entidad internacional." },
+            { id: 120, question: "La correcta disposición de los invitados a la derecha e izquierda de la presidencia en orden decreciente es un reflejo de:", options: ["La regla de alternancia.", "La regla de antigüedad.", "La regla de proximidad y jerarquía.", "La regla de cortesía."], answer: "La regla de proximidad y jerarquía.", explanation: "La colocación junto al presidente refleja la cercanía honorífica y la jerarquía." },
+            { id: 121, question: "¿Qué implica la 'ordenación por derecho' en protocolo de precedencias?", options: ["Solo ordenar a abogados.", "El uso de la lista oficial establecida por ley o Real Decreto.", "La decisión unilateral del presidente.", "El orden alfabético."], answer: "El uso de la lista oficial establecida por ley o Real Decreto.", explanation: "Se refiere a la ordenación estricta y obligatoria basada en la normativa vigente." },
+            { id: 122, question: "En la mesa a la francesa, el presidente y el vice-presidente (si lo hubiera) se sitúan:", options: ["En el mismo lado, juntos.", "En el lado opuesto, frente a frente.", "En las cabeceras.", "Separados por un invitado de menor rango."], answer: "En el mismo lado, juntos.", explanation: "En la disposición central, la presidencia (si es dual o asistida) se agrupa en el centro de un lado de la mesa." },
+            { id: 123, question: "Si dos autoridades tienen igual rango, pero una es Ministro y otra es Presidente Autonómico, ¿qué criterio se aplica habitualmente?", options: ["El de antigüedad en el cargo.", "La edad.", "El del ámbito territorial (el local sobre el estatal).", "Se consideran iguales a efectos de acto nacional, priorizando la antigüedad."], answer: "Se consideran iguales a efectos de acto nacional, priorizando la antigüedad.", explanation: "Ambos tienen rango de Excelentísimo Señor. Se recurre al criterio de desempate, siendo la antigüedad en el cargo el más común." },
+            { id: 124, question: "La 'Presidencia por delegación' se da cuando:", options: ["El anfitrión cede su puesto a un igual.", "El titular es sustituido por su segundo en el cargo.", "El titular nombra formalmente a otra persona para que lo represente y presida.", "El acto es informal."], answer: "El titular nombra formalmente a otra persona para que lo represente y presida.", explanation: "El titular delega la función de presidir en un tercero, que actúa en su nombre y representación." },
+            { id: 125, question: "¿Qué elemento de la disposición espacial se debe cuidar para la comunicación no verbal?", options: ["El color de las servilletas.", "La altura de la silla o sillón del presidente.", "El número de cubiertos.", "El precio del vino."], answer: "La altura de la silla o sillón del presidente.", explanation: "Un asiento ligeramente más alto puede indicar preeminencia y jerarquía, siendo un detalle de comunicación no verbal." },
+            { id: 126, question: "El concepto de 'Precedencia de Cortesía' implica:", options: ["La aplicación rígida de la ley.", "Ceder el paso o el honor a una señora.", "Ignorar a los invitados de menor rango.", "Solo aplica a la Casa Real."], answer: "Ceder el paso o el honor a una señora.", explanation: "Son gestos que no están en la ley, pero son parte de la etiqueta social y la deferencia." },
+            { id: 127, question: "¿En qué tipo de mesas la 'regla del escalonamiento' (zigzag) es más notoria?", options: ["Mesas redondas.", "Mesas presidenciales largas.", "Mesas de cóctel.", "Mesas de cafetería."], answer: "Mesas presidenciales largas.", explanation: "La regla D-I-D-I... es la base del escalonamiento jerárquico a lo largo de una mesa larga." },
+            { id: 128, question: "Para la ordenación de símbolos (himnos, escudos), ¿qué criterio se aplica?", options: ["El mismo que para las banderas.", "El del orden alfabético.", "El de la antigüedad de su creación.", "El de la popularidad."], answer: "El mismo que para las banderas.", explanation: "Los escudos e himnos siguen el orden de precedencia de la entidad territorial o institucional a la que representan." },
+            { id: 129, question: "La 'disciplina' que rige los actos en los que participan las Fuerzas Armadas es:", options: ["Protocolo Civil.", "Protocolo Social.", "Protocolo Militar.", "Vexilología."], answer: "Protocolo Militar.", explanation: "Tiene sus propias normas rígidas, aunque complementarias al Protocolo Institucional general." },
+            { id: 130, question: "El tratamiento 'Su Santidad' corresponde a:", options: ["El Rey.", "El Presidente del Gobierno.", "El Papa.", "Un Cardenal."], answer: "El Papa.", explanation: "Es el tratamiento exclusivo y máximo de la autoridad de la Iglesia Católica." },
+        ];
+
+        // --- Funciones de Inicialización y Modo ---
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function loadQuiz() {
+            // 1. Seleccionar 20 preguntas al azar
+            selectedQuestions = shuffle([...fullQuestionBank]).slice(0, NUM_QUESTIONS);
+            userAnswers = {};
+            
+            // 2. Generar el HTML de las preguntas
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = selectedQuestions.map((q, index) => {
+                // Mezclar las opciones para cada pregunta
+                const shuffledOptions = shuffle([...q.options]);
+
+                const optionsHtml = shuffledOptions.map((option, optIndex) => `
+                    <div class="mb-2">
+                        <input type="radio" id="q${q.id}opt${optIndex}" name="question-${q.id}" value="${option}"
+                               class="hidden peer" onchange="recordAnswer(${q.id}, '${option}', this.checked)">
+                        <label for="q${q.id}opt${optIndex}"
+                               class="block w-full cursor-pointer p-3 rounded-lg border-2 border-gray-200 transition duration-150 hover:bg-gray-50 peer-checked:border-primary peer-checked:bg-blue-50">
+                            ${option}
+                        </label>
+                    </div>
+                `).join('');
+
+                return `
+                    <div id="q-block-${q.id}" class="mb-8 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+                        <p class="text-xl font-semibold text-primary mb-4">
+                            <span class="text-secondary mr-2">P${index + 1}.</span> ${q.question}
+                        </p>
+                        <div class="options-container-${q.id}">
+                            ${optionsHtml}
+                        </div>
+                        <div id="feedback-${q.id}" class="mt-3 p-3 rounded-lg hidden">
+                            <!-- Retroalimentación inyectada aquí -->
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 3. Ocultar resultados y habilitar botón
+            document.getElementById('results-container').classList.add('hidden');
+            checkSubmitButtonStatus();
+            updateModeUI();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            updateModeUI();
+            
+            // Si cambiamos de modo, debemos resetear el feedback de las preguntas
+            selectedQuestions.forEach(q => {
+                const feedbackElement = document.getElementById(`feedback-${q.id}`);
+                const optionsContainer = document.querySelector(`.options-container-${q.id}`);
+
+                if (feedbackElement) feedbackElement.classList.add('hidden');
+                
+                // Limpiar estilos de corrección y re-habilitar en modo Practicar
+                optionsContainer.querySelectorAll('input[type="radio"]').forEach(radio => {
+                    radio.disabled = false;
+                });
+                optionsContainer.querySelectorAll('label').forEach(label => {
+                    label.classList.remove('bg-red-200', 'border-red-500', 'bg-green-200', 'border-green-500', 'font-bold');
+                });
+            });
+
+            // Si cambiamos al modo Practicar, ocultar resultados
+            if (mode === 'Practicar') {
+                 document.getElementById('results-container').classList.add('hidden');
+            }
+
+            checkSubmitButtonStatus();
+        }
+
+        function updateModeUI() {
+            document.getElementById('current-mode').textContent = currentMode;
+            const btnEstudiar = document.getElementById('btn-estudiar');
+            const btnPracticar = document.getElementById('btn-practicar');
+            const submitBtn = document.getElementById('submit-button');
+
+            btnEstudiar.classList.remove('mode-button-active');
+            btnPracticar.classList.remove('mode-button-active');
+            
+            if (currentMode === 'Estudiar') {
+                btnEstudiar.classList.add('mode-button-active');
+                submitBtn.classList.add('hidden');
+            } else { // Practicar
+                btnPracticar.classList.add('mode-button-active');
+                submitBtn.classList.remove('hidden');
+            }
+        }
+
+        // --- Funciones de Respuesta y Puntuación ---
+
+        function recordAnswer(questionId, selectedOption, isChecked) {
+            // Registrar la respuesta
+            if (isChecked) {
+                userAnswers[questionId] = selectedOption;
+            } else {
+                delete userAnswers[questionId]; // En caso de desmarcar (aunque es radio, es buena práctica)
+            }
+
+            if (currentMode === 'Estudiar') {
+                showFeedback(questionId);
+                // Si todas están respondidas, corregir inmediatamente
+                if (Object.keys(userAnswers).length === NUM_QUESTIONS) {
+                    submitQuiz();
+                }
+            } else {
+                checkSubmitButtonStatus();
+            }
+        }
+
+        function checkSubmitButtonStatus() {
+            const submitBtn = document.getElementById('submit-button');
+            const answeredCount = Object.keys(userAnswers).length;
+
+            if (answeredCount === NUM_QUESTIONS) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar y Corregir Test';
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.textContent = `Faltan ${NUM_QUESTIONS - answeredCount} preguntas`;
+            }
+        }
+
+        function showFeedback(questionId) {
+            const qData = selectedQuestions.find(q => q.id === questionId);
+            const userAnswer = userAnswers[questionId];
+            const isCorrect = userAnswer === qData.answer;
+            const feedbackElement = document.getElementById(`feedback-${qData.id}`);
+            const optionsContainer = document.querySelector(`.options-container-${qData.id}`);
+
+            // Deshabilitar todas las opciones para evitar cambios
+            optionsContainer.querySelectorAll('input[type="radio"]').forEach(radio => radio.disabled = true);
+
+            let feedbackHtml = '';
+            
+            if (isCorrect) {
+                feedbackElement.className = 'mt-3 p-3 rounded-lg bg-green-100 text-green-700 font-semibold';
+                feedbackHtml = '¡Correcto! Has acertado.';
+            } else {
+                feedbackElement.className = 'mt-3 p-3 rounded-lg bg-red-100 text-red-700';
+                feedbackHtml = `<p class="font-semibold">¡Incorrecto!</p>`;
+                if (userAnswer) {
+                     // Marcar la respuesta del usuario como incorrecta
+                    const userLabel = optionsContainer.querySelector(`input[value="${userAnswer}"] + label`);
+                    if (userLabel) {
+                        userLabel.classList.remove('peer-checked:bg-blue-50'); // Quitar el estilo de checked
+                        userLabel.classList.add('bg-red-200', 'border-red-500');
+                    }
+                }
+               
+                // Marcar la respuesta correcta
+                const correctLabel = optionsContainer.querySelector(`input[value="${qData.answer}"] + label`);
+                if (correctLabel) correctLabel.classList.add('bg-green-200', 'border-green-500', 'font-bold');
+
+                feedbackHtml += `<p>La respuesta correcta era: <span class="font-bold text-green-700">${qData.answer}</span>.</p>`;
+                feedbackHtml += `<p class="mt-2 font-medium text-red-800">Explicación: ${qData.explanation}</p>`;
+            }
+
+            feedbackElement.innerHTML = feedbackHtml;
+            feedbackElement.classList.remove('hidden');
+        }
+
+
+        function submitQuiz() {
+            let correctCount = 0;
+            let incorrectCount = 0;
+            let finalScore = 0;
+            const explanations = [];
+            let allAnswered = true;
+
+            // 1. Calcular puntuación y recopilar explicaciones
+            selectedQuestions.forEach(qData => {
+                const userAnswer = userAnswers[qData.id];
+                const isCorrect = userAnswer === qData.answer;
+
+                // Si no ha respondido
+                if (!userAnswer) {
+                    allAnswered = false;
+                } else if (isCorrect) {
+                    correctCount++;
+                    finalScore += VALUE_CORRECT;
+                } else {
+                    incorrectCount++;
+                    finalScore += VALUE_INCORRECT;
+
+                    // Recopilar explicación del error
+                    explanations.push({
+                        question: qData.question,
+                        userAnswer: userAnswer,
+                        correctAnswer: qData.answer,
+                        explanation: qData.explanation
+                    });
+                }
+                
+                // Mostrar feedback para todos los modos
+                showFeedback(qData.id);
+            });
+
+            // Comprobar si todas fueron respondidas antes de mostrar la nota final
+            if (!allAnswered) {
+                console.error("No todas las preguntas fueron respondidas. No se puede enviar el test.");
+                // Opcional: mostrar un mensaje de error al usuario, pero la UI de Practicar ya lo previene
+                return; 
+            }
+
+            // 2. Limitar la nota a 0 o 10
+            finalScore = Math.max(0, finalScore);
+            finalScore = Math.min(10, finalScore);
+
+            // 3. Mostrar resultados y estadísticas
+            document.getElementById('correct-count').textContent = correctCount;
+            document.getElementById('incorrect-count').textContent = incorrectCount;
+            document.getElementById('final-score').textContent = finalScore.toFixed(2);
+            document.getElementById('results-container').classList.remove('hidden');
+
+            // 4. Inyectar explicaciones
+            const explanationsList = document.getElementById('explanations-list');
+            if (explanations.length > 0) {
+                explanationsList.innerHTML = explanations.map((e, index) => {
+                    // Buscar el número de pregunta original en el test seleccionado
+                    const originalIndex = selectedQuestions.findIndex(q => q.id === fullQuestionBank.find(fq => fq.question === e.question).id);
+
+                    return `
+                    <div class="p-4 border-l-4 border-red-500 bg-red-50 rounded-md">
+                        <p class="font-bold text-red-700">P${originalIndex + 1} - Error:</p>
+                        <p class="mt-1 text-gray-800">${e.question}</p>
+                        <p class="mt-1 text-sm"><span class="font-semibold">Tu respuesta:</span> <span class="text-red-600">${e.userAnswer || 'No respondida'}</span></p>
+                        <p class="mt-1 text-sm"><span class="font-semibold">Respuesta correcta:</span> <span class="text-green-600">${e.correctAnswer}</span></p>
+                        <p class="mt-2 text-sm font-medium border-t pt-2 border-red-200">Explicación: ${e.explanation}</p>
+                    </div>
+                `;
+                }).join('');
+            } else {
+                explanationsList.innerHTML = '<p class="text-center p-4 bg-green-50 text-green-700 rounded-md font-semibold">¡Felicidades! No cometiste ningún error. ¡Nota de 10.00!</p>';
+            }
+
+            // Deshabilitar el botón de enviar
+            document.getElementById('submit-button').disabled = true;
+            document.getElementById('submit-button').textContent = 'Test Finalizado';
+            
+            // Scroll a los resultados
+            document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Inicializar el quiz al cargar la página
+        window.onload = loadQuiz;
+    </script>
+</body>
+</html>
+
